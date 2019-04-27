@@ -10,9 +10,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h> // library for boolean variable
-/* FreeRTOS files. */
+#include <avr/interrupt.h>
 #include "Include.h"
-/* Define all the tasks */
 void Init(void);// initial library to set up the external devices
 int ADC_value();// ADC setup
 double getTemp();
@@ -24,9 +23,9 @@ double Fe; //speed of extruder
 double S;
 double E;
 int Vo;
-double R1 = 10000.00;
-double logR2, R2, T;
-double c1 = 1.009249522e-03, c2 = 2.378405444e-04, c3 = 2.019202697e-07;
+float R1 = 10000.00;
+float logR2, R2, T;
+float c1 = 1.009249522e-03, c2 = 2.378405444e-04, c3 = 2.019202697e-07;
 char String[80] ; // variable to storage the value of converted integer in it
 bool status; // to control the start and stop button
 uint8_t d = 100; //no. of steps per 1mm
@@ -35,7 +34,6 @@ volatile int value; // to storage the instantaneous change in ADC converter
 int main(void)
 {
     Init();
-	int i = 1 ,j =0;
 	/*static variables that initialize only once */
 	static double old_val_1 = 0;
 	static double old_val_2 = 0;
@@ -45,72 +43,54 @@ int main(void)
 	double value_2;
 	double value_3;
 	int val = 0;
-	char arr[5];
 	while (1)
 	{
 		for (int i = 0 ; i < 80 ;i++)
 		{
 			String [i] = 0;
 		}
-		for (int i = 0 ; i < 5 ;i++)
-		{
-			arr [i] = 0;
-		}
 		Recive_Data(String);
-		i = 1;
 		if (String[0] == 'M')
 		{
-			while(String[i] != ';')
-			{
-				arr[j] = String[i];
-				j += 1;
-				i += 1;
-			}
-			val = atoi(arr);
-			j = 0;
+			val = get_int (String,'M');
 			if (val == 105)
 			{
 				Transmit_Data("ok");
 			}
 			if (val == 104)
 			{
-				S = S_value(String);
+				S = get_value(String,'S');
 				Transmit_Data("ok");
 			}
 			if (val == 109)
 			{
-				while(getTemp() != S);
+				PORTD |= (1<<PD5);
+				while(getTemp() <= (S+2));
+				PORTD &=~ (1<<PD5);
 				Transmit_Data("ok");
 			}
 		}
 		else if (String[0] == 'G')
 		{
-			while(String[i] != ' ')
-			{
-				arr[j] = String[i];
-				j += 1;
-				i += 1;
-			}
-			val = atoi(arr);
-			j = 0;
+			val = get_int (String,'G');
 			if (val == '1')
 			{
-				value_1 = X_value(String);           //extract first value
-				value_2 = Y_value (String); //call function to extract second value
-				value_3 = Z_value (String); //call function to extract third value
-				E = E_value(String);
+				value_1 = get_value(String,'X');           //extract first value
+				value_2 = get_value(String,'Y'); //call function to extract second value
+				value_3 = get_value(String,'Z'); //call function to extract third value
+				E = get_value(String,'E');
 				if ((E && value_1 && value_2 && value_3) == 0)
 				{
-					if (F_value(String) != 0)
+					if (get_value(String,'F') != 0)
 					{
-						Fe = F_value(String);
+						Fe = get_value(String,'F');
 					}
 				} 
 				else
 				{
-					if (F_value(String) != 0)
+					if (get_value(String,'F') != 0)
 					{
-						F = F_value(String);
+						F = get_value(String,'F');
 					}
 				}
 				if (!(value_1>107||value_2>107||value_3>500||value_1<-107||value_2<-107||value_3<0)) // if the values don't skip the plate ,use it
@@ -128,12 +108,16 @@ int main(void)
 				}
 				if (val == '0')
 				{
-					value_1 = X_value(String);           //extract first value
-					value_2 = Y_value (String); //call function to extract second value
-					value_3 = Z_value (String); //call function to extract third value
-					if (F_value(String) != 0)
+					value_1 = get_value(String,'X');           //extract first value
+					value_2 = get_value(String,'Y'); //call function to extract second value
+					value_3 = get_value(String,'Z'); //call function to extract third value
+					E = get_value(String,'E');
+					if ((E && value_1 && value_2 && value_3) == 0)
 					{
-						F = F_value(String);
+						if (get_value(String,'F') != 0)
+						{
+							F = get_value(String,'F');
+						}
 					}
 					if (!(value_1>107||value_2>107||value_3>500||value_1<-107||value_2<-107||value_3<0)) // if the values don't skip the plate ,use it
 
@@ -157,7 +141,12 @@ void Init(void){
 	ADCSRA |= 0x87; //to active A/D pins
 	ADMUX |= (1<<REFS0);// external reference volt is selected
 	DDRA &= ~(0<<PA0);// use PA0,1 as input for thermistor 
+	DDRD |= (1<<PD5);
 	UART_INIT();
+	TCNT0 = 0;
+	TCCR0 |= (1<<CS02) | (1<<CS00); // PRESCALER 1024
+	TIMSK = (1<<TOIE0);
+	sei();
 }
 int ADC_value(void)
 {
@@ -176,4 +165,16 @@ double getTemp()
 	T = (1.0 / (c1 + c2*logR2 + c3*logR2*logR2*logR2));
 	T = T - 273.15;
 	return (T);
+}
+ISR(TIMER0_OVF_vect)
+{
+	if (getTemp() <= S)
+	{
+		PORTD |= (1<<PD5);
+	} 
+	else if (getTemp() > (S+2))
+	{
+		PORTD &=~ (1<<PD5);
+	}
+	
 }

@@ -10,133 +10,153 @@
 //this function take one variable, and search in it about the location of ","
 //then put the characters after "," in a new array of characters
 //then convert string to integer value ,then return it
-double X_value (char* String)
+double get_value (char* String,char ch)
 {
 	int i = 0,j=0;
-	char X_v[10];
+	char v[10];
 	for (int i = 0 ; i < 10 ;i++)
 	{
-		X_v [i] = 0;
+		v [i] = 0;
 	}
-	while(i < 80)
+	while(1)
 	{
-		if (String [i] == 'X'){
-			X_v [j] = String[j+i+1];
-			if (String [j+i+2] == ' ')
+		if (String [i] == ch){
+			v [j] = String[j+i+1];
+			if ((String [j+i+2] == ' ') || ( String [j+i+2] == ';'))
 			break;
 			j++;
 		}
 		else
 		i++;
 	}
-	return (atof(X_v));
+	return (atof(v));
 }
-
-double Y_value (char* String)
-{
-    int i = 0,j=0;
-	char Y_v[10];
-	for (int i = 0 ; i < 10 ;i++)
-	{
-		Y_v [i] = 0;
-	}
-    while(i < 80)
-    {
-        if (String [i] == 'Y'){
-				Y_v [j] = String[j+i+1];
-				if (String [j+i+2] == ' ')
-				break;
-				j++;
-		}
-		else
-		i++;
-    }
-    return (atof(Y_v));
-}
-double Z_value (char* String)
+int get_int (char* String,char ch)
 {
 	int i = 0,j=0;
-	char Z_v[10];
+	char v[10];
 	for (int i = 0 ; i < 10 ;i++)
 	{
-		Z_v [i] = 0;
+		v [i] = 0;
 	}
-	while(i < 80)
+	while(1)
 	{
-		if (String [i] == 'Z'){
-			Z_v [j] = String[j+i+1];
-			if (String [j+i+2] == ' ')
-			break;
-			j++;
-		}
-		else
-		i++;
-	}	
-	return (atof(Z_v));
-}
-double F_value (char* String)
-{
-	int i = 0,j=0;
-	char F_v[10];
-	for (int i = 0 ; i < 10 ;i++)
-	{
-		F_v [i] = 0;
-	}
-	while(i < 80)
-	{
-		if (String [i] == 'F'){
-			F_v [j] = String[j+i+1];
-			if (String [j+i+2] == ' ')
+		if (String [i] == ch){
+			v [j] = String[j+i+1];
+			if ((String [j+i+2] == ' ') || ( String [j+i+2] == ';'))
 			break;
 			j++;
 		}
 		else
 		i++;
 	}
-	return (atof(F_v));
+	return (atoi(v));
 }
-double S_value (char* String)
-{
-	int i = 0,j=0;
-	char S_v[10];
-	for (int i = 0 ; i < 10 ;i++)
-	{
-		S_v [i] = 0;
-	}
-	while(i < 80)
-	{
-		if (String [i] == 'S'){
-			S_v [j] = String[j+i+1];
-			if (String [j+i+2] == ' ')
-			break;
-			j++;
-		}
-		else
-		i++;
-	}
-	return (atof(S_v));
-}
-double E_value (char* String)
-{
-	int i = 0,j=0;
-	char E_v[10];
-	for (int i = 0 ; i < 10 ;i++)
-	{
-		E_v [i] = 0;
-	}
-	while(i < 80)
-	{
-		if (String [i] == 'E'){
-			E_v [j] = String[j+i+1];
-			if (String [j+i+2] == ' ')
-			break;
-			j++;
-		}
-		else
-		i++;
-	}
-	return (atof(E_v));
-}
+// double Y_value (char* String)
+// {
+//     int i = 0,j=0;
+// 	char Y_v[10];
+// 	for (int i = 0 ; i < 10 ;i++)
+// 	{
+// 		Y_v [i] = 0;
+// 	}
+//     while(i < 80)
+//     {
+//         if (String [i] == 'Y'){
+// 				Y_v [j] = String[j+i+1];
+// 				if ((String [j+i+2] == ' ') || ( String [j+i+2] == ';'))
+// 				break;
+// 				j++;
+// 		}
+// 		else
+// 		i++;
+//     }
+//     return (atof(Y_v));
+// }
+// double Z_value (char* String)
+// {
+// 	int i = 0,j=0;
+// 	char Z_v[10];
+// 	for (int i = 0 ; i < 10 ;i++)
+// 	{
+// 		Z_v [i] = 0;
+// 	}
+// 	while(i < 80)
+// 	{
+// 		if (String [i] == 'Z'){
+// 			Z_v [j] = String[j+i+1];
+// 			if ((String [j+i+2] == ' ') || ( String [j+i+2] == ';'))
+// 			break;
+// 			j++;
+// 		}
+// 		else
+// 		i++;
+// 	}	
+// 	return (atof(Z_v));
+// }
+// double F_value (char* String)
+// {
+// 	int i = 0,j=0;
+// 	char F_v[10];
+// 	for (int i = 0 ; i < 10 ;i++)
+// 	{
+// 		F_v [i] = 0;
+// 	}
+// 	while(i < 80)
+// 	{
+// 		if (String [i] == 'F'){
+// 			F_v [j] = String[j+i+1];
+// 			if ((String [j+i+2] == ' ') || ( String [j+i+2] == ';'))
+// 			break;
+// 			j++;
+// 		}
+// 		else
+// 		i++;
+// 	}
+// 	return (atof(F_v));
+// }
+// double S_value (char* String)
+// {
+// 	int i = 0,j=0;
+// 	char S_v[10];
+// 	for (int i = 0 ; i < 10 ;i++)
+// 	{
+// 		S_v [i] = 0;
+// 	}
+// 	while(i < 80)
+// 	{
+// 		if (String [i] == 'S'){
+// 			S_v [j] = String[j+i+1];
+// 			if ((String [j+i+2] == ' ') || ( String [j+i+2] == ';'))
+// 			break;
+// 			j++;
+// 		}
+// 		else
+// 		i++;
+// 	}
+// 	return (atof(S_v));
+// }
+// double E_value (char* String)
+// {
+// 	int i = 0,j=0;
+// 	char E_v[10];
+// 	for (int i = 0 ; i < 10 ;i++)
+// 	{
+// 		E_v [i] = 0;
+// 	}
+// 	while(i < 80)
+// 	{
+// 		if (String [i] == 'E'){
+// 			E_v [j] = String[j+i+1];
+// 			if ((String [j+i+2] == ' ') || ( String [j+i+2] == ';'))
+// 			break;
+// 			j++;
+// 		}
+// 		else
+// 		i++;
+// 	}
+// 	return (atof(E_v));
+// }
 
 //***subtraction_function***
 //it takes two variables, one call by reference and other call by value

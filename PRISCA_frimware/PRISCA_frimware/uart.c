@@ -6,7 +6,7 @@
  */ 
 
 #include "uart.h"
-
+#include <stdbool.h> // library for boolean variable
 long Crystal ()
 {
 
@@ -37,8 +37,26 @@ void Transmit_Char(char ptr_char)
 
 char Recive_Char(void)
 {
-	while (! (UCSRA & (1 << RXC)));   //waits until 'bin7' equal to 1, have unread data in the receive buffer
-	return UDR;                  //Receive one character
+	long times = 0 ;
+	bool stu =  0;
+	while (! (UCSRA & (1 << RXC)))
+	{
+		if (times >= (90000))
+		{
+			stu =  1;
+			break;
+		}
+		times += 1;
+	}   //waits until 'bin7' equal to 1, have unread data in the receive buffer
+	if (stu == 1)
+	{
+		return(';');
+	}
+	else
+	{
+		return(UDR);
+	}   
+	 
 }
 void Transmit_Data(char *ptr_string)
 {

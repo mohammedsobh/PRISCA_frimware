@@ -23,8 +23,8 @@ double Fe; //speed of extruder
 double S;
 double E;
 int Vo;
-float R1 = 10000.00;
-float logR2, R2, T;
+float R1 = 10000;
+float logR2, R2, T, Tc;
 float c1 = 1.009249522e-03, c2 = 2.378405444e-04, c3 = 2.019202697e-07;
 char String[80] ; // variable to storage the value of converted integer in it
 bool status; // to control the start and stop button
@@ -154,7 +154,6 @@ int ADC_value(void)
 	ADCSRA |= (1 << ADSC);		  //active reading
 	while(ADCSRA && (1<<ADSC)==0);	 // wait the A/D to complete reading and converting
 	ADCSRA |=(1<<ADIF);
-	value=ADC*(4.88E-3);		 // to convert D/A (the analoge volt) * (5/1024) = (the analoge volt)*0.00488
 	return ADC;                // the output of lm35 is vt = T/100 => T = vt*100 ==>so the value = (the analoge volt)*0.00488*100
 }
 double getTemp()
@@ -163,8 +162,8 @@ double getTemp()
 	R2 = R1 * (1023.0 / (float)Vo - 1.0);
 	logR2 = log(R2);
 	T = (1.0 / (c1 + c2*logR2 + c3*logR2*logR2*logR2));
-	T = T - 273.15;
-	return (T);
+	Tc = T - 273.15;
+	return (Tc);
 }
 ISR(TIMER0_OVF_vect)
 {

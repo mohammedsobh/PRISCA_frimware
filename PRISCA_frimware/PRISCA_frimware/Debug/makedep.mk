@@ -2,9 +2,13 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
-blutooth.c
+getTemperture.c
+
+getValue.c
 
 main.c
+
+pid.c
 
 uart.c
 

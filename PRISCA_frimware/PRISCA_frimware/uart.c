@@ -1,8 +1,9 @@
 /*
  * Usart.c
  *
- * Created: 2/10/2019 1:30:58 PM
- *  Author: norhan
+ * Created : 2/10/2019 1:30:58 PM
+ * Author  : NORHAN TAREK
+ * Company : PRISCA
  */ 
 
 #include "uart.h"
@@ -37,26 +38,8 @@ void Transmit_Char(char ptr_char)
 
 char Recive_Char(void)
 {
-	long times = 0 ;
-	bool stu =  0;
-	while (! (UCSRA & (1 << RXC)))
-	{
-		if (times >= (90000))
-		{
-			stu =  1;
-			break;
-		}
-		times += 1;
-	}   //waits until 'bin7' equal to 1, have unread data in the receive buffer
-	if (stu == 1)
-	{
-		return(';');
-	}
-	else
-	{
-		return(UDR);
-	}   
-	 
+	while (! (UCSRA & (1 << RXC)));  //waits until 'bin7' equal to 1, have unread data in the receive buffer
+	return(UDR); 
 }
 void Transmit_Data(char *ptr_string)
 {
@@ -66,25 +49,18 @@ void Transmit_Data(char *ptr_string)
 void Recive_Data(char *ptr_string)
 {   
 	 	char ch;
-	     uint8_t len = 0;
+	    uint8_t len = 0;
 	 	while(1)
 	 	{
 	 		ch=Recive_Char();    //Receive a char
-	 		if((ch==';')) //read till enter key is pressed
+	 		if(( ch == '\n') || (ch == '\r')) //read till enter key is pressed
 	 		{						     //once enter key is pressed null terminate the string
-	 			ptr_string[len]=';';
+	 			ptr_string[len]=' ';
 	 			break;           //and break the loop
 	 		}
-	         else if((ch=='\b') && (len!=0))
+	        else
 	         {
-	 		    len--;    //If backspace is pressed then decrement the index to remove the old char
+	             ptr_string[len++]=ch; //copy the char into string and increment the index
 	         }
-	         else
-	         {
-	             ptr_string[len]=ch; //copy the char into string and increment the index
-	             len++;
-	         }
-	 	}
-
-	
+	 	}	
 }

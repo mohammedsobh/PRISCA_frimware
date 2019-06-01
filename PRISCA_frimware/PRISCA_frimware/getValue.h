@@ -1,15 +1,16 @@
 /*
- * blutooth.h
+ * getValue.h
  *
- * Created: 09/03/2019 6:56:00 PM
- * Author : PRISCA
- */ 
+ * Created : 09/03/2019 6:56:00 PM
+ * Author  : NORHAN TAREK
+ * Company : PRISCA
+ */
 
 
-#ifndef BLUTOOTH_H_
-#define BLUTOOTH_H_
+#ifndef GETVALUE_H_
+#define GETVALUE_H_
 #include "Include.h"
 double get_value (char* String,char ch);
 int get_int (char* String,char ch);
 double sub_function (double *current_pos, double new_pos);
-#endif /* BLUTOOTH_H_ */
+#endif /* GETVALUE_H_ */

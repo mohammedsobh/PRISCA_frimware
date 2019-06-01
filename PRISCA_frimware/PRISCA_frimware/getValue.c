@@ -1,10 +1,11 @@
 /*
- * blutooth.c
+ * getValue.c
  *
- * Created: 09/03/2019 6:56:00 PM
- * Author : PRISCA
- */ 
-#include "Include.h"
+ * Created : 09/03/2019 6:56:00 PM
+ * Author  : NORHAN TAREK
+ * Company : PRISCA
+ */
+#include "getValue.h"
 #include <stdlib.h>
 //***second_value_function***
 //this function take one variable, and search in it about the location of ","
@@ -22,7 +23,7 @@ double get_value (char* String,char ch)
 	{
 		if (String [i] == ch){
 			v [j] = String[j+i+1];
-			if ((String [j+i+2] == ' ') || ( String [j+i+2] == ';'))
+			if ((String [j+i+2] == ' ') || ( String [j+i+2] == '\n') || (String [j+i+2] == '\r'))
 			break;
 			j++;
 		}
@@ -43,7 +44,7 @@ int get_int (char* String,char ch)
 	{
 		if (String [i] == ch){
 			v [j] = String[j+i+1];
-			if ((String [j+i+2] == ' ') || ( String [j+i+2] == ';'))
+			if ((String [j+i+2] == ' ') || ( String [j+i+2] == '\n') || (String [j+i+2] == '\r') )
 			break;
 			j++;
 		}

@@ -13,6 +13,7 @@
 #include <stdbool.h> // library for boolean variable
 #include <avr/interrupt.h>
 #include "Include.h"
+#include "lcd.h"
 //! \xref item todo "Todo" "Todo list"
 #define K_P 1.00
 //! \xref item todo "Todo" "Todo list"
@@ -59,6 +60,8 @@ int main(void)
 	int val = 0;
 	while (1)
 	{
+				 		
+
 		for (int i = 0 ; i < 80 ;i++)
 		{
 			String [i] = 0;
@@ -88,12 +91,7 @@ int main(void)
 			}
 			if (val == 109)
 			{
-				while(pid_Controller(SE1,getTemp(T0), &pidData) >= 0 || pid_Controller(SE2,getTemp(T2), &pidData) >= 0 )
-				{
-					itoa(getTemp(T0), output, 10);
-					Transmit_Data(output);
-					Transmit_Data('\r');
-				}
+				while(pid_Controller(SE1,getTemp(T0), &pidData) >= 0 && pid_Controller(SE2,getTemp(T2), &pidData) >= 0 );
 				Transmit_Data("ok");
 			}
 			if (val == 140)
@@ -181,9 +179,10 @@ int main(void)
 }
 void Init(void){
 	
-	DDRA &= ~(0<<PA0);// use PA0,1 as input for thermistor 
 	DDRD |= (1<<PD4)|(1<<PD5)|(1<<PD7);
+	DDRC = 0XFF;
 	ADCSRA = 0x87; //to active A/D pins
+	ADMUX |= (1<<REFS0);// external reference volt is selected
 	UART_INIT();
 	pid_Init(K_P * SCALING_FACTOR, K_I * SCALING_FACTOR, K_D * SCALING_FACTOR, &pidData);
 	TCNT0 = 0;
@@ -199,7 +198,7 @@ void Init(void){
 }
 int ADC_value(uint8_t ADC_pin)
 {
-	ADMUX = (uint8_t) ADC_pin; // reset MUX0 to select ADC0
+	ADMUX = ADC_pin; // reset MUX0 to select ADC0
 	ADCSRA |= (1 << ADSC);		  //active reading
 	while(ADCSRA && (1<<ADSC)==0);	 // wait the A/D to complete reading and converting
 	ADCSRA |=(1<<ADIF);
@@ -224,13 +223,13 @@ ISR(TIMER0_OVF_vect)
 		} else {
 		gFlags.pidTimer = 1;
 		i               = 0;
-	}
+	}
 	if (gFlags.pidTimer == 1) 
 	{
-		OCR0 =	pid_Controller(SE1,getTemp(T0), &pidData);
-		OCR1A = pid_Controller(SE2,getTemp(T2), &pidData);
-		OCR1B = pid_Controller(SB,getTemp(T3), &pidData);
+		OCR0 =	255 - pid_Controller(SE1,getTemp(T0), &pidData);
+		OCR1A = 255 - pid_Controller(SE2,getTemp(T2), &pidData);
+		OCR1B = 255 - pid_Controller(SB,getTemp(T3), &pidData);
 		gFlags.pidTimer = FALSE;
-	}
-	
+	}
+	
 }

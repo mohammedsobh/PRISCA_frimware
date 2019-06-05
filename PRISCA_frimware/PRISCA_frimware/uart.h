@@ -1,8 +1,9 @@
 /*
- * Usart.h
+ * Uart.h
  * Created: 2/10/2019 1:29:30 PM
- *  Author: norhan
- */ 
+ * Author  : NORHAN TAREK
+ * Company : PRISCA
+ */
 #ifndef UART_H_
 #define UART_H_
 #include <avr/io.h>

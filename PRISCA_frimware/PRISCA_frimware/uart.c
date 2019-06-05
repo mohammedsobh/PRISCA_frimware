@@ -1,5 +1,5 @@
 /*
- * Usart.c
+ * Uart.c
  *
  * Created : 2/10/2019 1:30:58 PM
  * Author  : NORHAN TAREK
@@ -11,8 +11,8 @@
 long Crystal ()
 {
 
-	long BAUD = 9600;
-	long MyBaud =  ((F_CPU / (16 * BAUD))-1);
+	uint32_t BAUD = 250000;
+	uint32_t MyBaud =  ((F_CPU / (16 * BAUD))-1);
 	return MyBaud;
 }
 
@@ -20,10 +20,10 @@ long Crystal ()
 
 void UART_INIT()
 {
-	long t;
+	uint32_t t;
 	t =Crystal();
-	UBRRL =  (uint8_t) (t);
-	UBRRH = (uint8_t)(t>>8);
+	UBRRL =  (uint8_t) ((t)& 0xFFu);
+	UBRRH = (uint8_t)((t>>8)& 0xFFu);
 	
 	UCSRB = ((1<<4) | (1<<3));     //Enable transmitter and Receiver
 	UCSRC = ((1 << URSEL) |(1<<2) | (1<<1));     //Character size is 8_bits
@@ -32,7 +32,7 @@ void UART_INIT()
 
 void Transmit_Char(char ptr_char)
 {
-	while (!(UCSRA & (1<<5)));    //waits until 'bin 5' equal to 1, becomes Empty.
+	while (! (UCSRA & (1<<UDRE) ));    //waits until 'bin 5' equal to 1, becomes Empty.
 	UDR = ptr_char;                   //transmits one character.
 }
 

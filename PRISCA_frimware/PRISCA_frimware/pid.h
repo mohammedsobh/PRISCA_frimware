@@ -11,7 +11,7 @@
 
 #include "stdint.h"
 
-#define SCALING_FACTOR 128
+#define SCALING_FACTOR 2
 
 /*! \brief PID Status
  *

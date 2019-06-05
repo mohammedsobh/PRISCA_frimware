@@ -121,6 +121,12 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="eeprom.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="eeprom.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="getTemperture.c">
       <SubType>compile</SubType>
     </Compile>
@@ -133,10 +139,22 @@
     <Compile Include="getValue.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="lcd.h">
+    <Compile Include="Gpio.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Gpio.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Include.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="motor.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="motor.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="pid.c">

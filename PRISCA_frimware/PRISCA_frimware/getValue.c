@@ -7,6 +7,7 @@
  */
 #include "getValue.h"
 #include <stdlib.h>
+#include <stdbool.h>
 //***second_value_function***
 //this function take one variable, and search in it about the location of ","
 //then put the characters after "," in a new array of characters
@@ -27,8 +28,10 @@ double get_value (char* String,char ch)
 			break;
 			j++;
 		}
+		else if (String [i] == '\r')
+			break;
 		else
-		i++;
+			i++;
 	}
 	return (atof(v));
 }
@@ -48,10 +51,29 @@ int get_int (char* String,char ch)
 			break;
 			j++;
 		}
+		else if (String [i] == '\r')
+			break;
 		else
-		i++;
+			i++;
 	}
 	return (atoi(v));
+}
+bool find (char* String,char ch)
+{
+	int i = 0;
+	bool f  = 0;
+	while(1)
+	{
+		if (String [i] == ch){
+			f = 1;
+			break;
+		}
+		else if (String [i] == '\r')
+			break;
+		else
+			i++;
+	}
+	return (f);
 }
 //***subtraction_function***
 //it takes two variables, one call by reference and other call by value

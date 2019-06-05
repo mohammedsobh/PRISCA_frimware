@@ -13,5 +13,6 @@
 #include "uart.h"
 #include "pid.h"
 #include "getTemperture.h"
-
+#include "eeprom.h"
+#include "motor.h"
 #endif /* INCLUDE_H_ */

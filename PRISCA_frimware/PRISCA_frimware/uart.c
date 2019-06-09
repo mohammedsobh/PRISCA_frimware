@@ -53,7 +53,7 @@ void Recive_Data(char *ptr_string)
 	 	while(1)
 	 	{
 	 		ch=Recive_Char();    //Receive a char
-	 		if(( ch == '\n') || (ch == '\r')) //read till enter key is pressed
+	 		if((ch == '\r')) //read till enter key is pressed
 	 		{						     //once enter key is pressed null terminate the string
 	 			ptr_string[len]=' ';
 	 			break;           //and break the loop

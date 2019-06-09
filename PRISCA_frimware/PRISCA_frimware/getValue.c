@@ -24,12 +24,10 @@ double get_value (char* String,char ch)
 	{
 		if (String [i] == ch){
 			v [j] = String[j+i+1];
-			if ((String [j+i+2] == ' ') || ( String [j+i+2] == '\n') || (String [j+i+2] == '\r'))
+			if ((String [j+i+2] == ' ') || (String [j+i+2] == '\r'))
 			break;
 			j++;
 		}
-		else if (String [i] == '\r')
-			break;
 		else
 			i++;
 	}
@@ -47,12 +45,10 @@ int get_int (char* String,char ch)
 	{
 		if (String [i] == ch){
 			v [j] = String[j+i+1];
-			if ((String [j+i+2] == ' ') || ( String [j+i+2] == '\n') || (String [j+i+2] == '\r') )
+			if ((String [j+i+2] == ' ') || (String [j+i+2] == '\r'))
 			break;
 			j++;
 		}
-		else if (String [i] == '\r')
-			break;
 		else
 			i++;
 	}

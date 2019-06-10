@@ -20,6 +20,10 @@ void motor_init ()
 {	
 	port_direction(M_PORT,output);
 	port_write(M_PORT,0);
+	pin_direction(EN_DES_PORT,EN_DES_XPIN,output);
+	pin_direction(EN_DES_PORT,EN_DES_YPIN,output);
+	pin_direction(EN_DES_PORT,EN_DES_ZPIN,output);
+	pin_direction(EN_DES_PORT,EN_DES_EPIN,output);
 	motor_EN_DES('X',0);
 	motor_EN_DES('Y',0);
 	motor_EN_DES('Z',0);
@@ -41,27 +45,29 @@ void motor_movement(double step[4],long speed,long exspeed)
 		pin_write (M_PORT, DIR_pin[i] ,0);
 	}
 	int S ;         // number from 0 to 3 index to the current state
-	 int index ;     //input from 0 to 7 to  choose next state
-	 int j [3] = {1,1,1} ;
+	int index ;     //input from 0 to 7 to  choose next state
+	int j [4] = {1,1,1,1} ;
 	
-	 struct State 
-	    {
-		   int Out;     // make one step to one motor in one unit of time
-		   int Next[8]; 
-	    };
-	 typedef const struct State STyp; //define STYP from type of struct State 
-	 /*{Current state,{next state}} */
-	 STyp FSM[3]=
-	   {
-		 {X,{E,X,Y,Y,Z,Z,Y,Y}},
-		 {Y,{E,X,Y,X,Z,Z,Z,Z}},
-		 {Z,{E,X,Y,X,Z,X,Y,X}}
-	   };	 
+	struct State
+	{
+		int Out;     // make one step to one motor in one unit of time
+		int Next[16];
+	};
+	typedef const struct State STyp; //define STYP from type of struct State
+	/*{Current state,{next state}} */
+	STyp FSM[4]=
+	{
+		{X,{E,X,Y,Y,Z,X,Y,Y,E,X,Y,Y,Z,X,Y,Y}},
+		{Y,{E,X,Y,X,Z,X,Y,X,E,X,Y,X,Z,X,Y,X}},
+		{Z,{E,X,Y,X,Z,X,Y,X,E,X,Y,X,Z,X,Y,X}},
+		{E,{E,X,Y,X,Z,X,Y,X,E,X,Y,X,Z,X,Y,X}}
+	};	 
 		index = 1;
 		S = X;
-		 j [0] = 1;
-		 j [1] = 1;
-		 j [2] = 1;
+		j [0] = 1;
+		j [1] = 1;
+		j [2] = 1;
+		j [3] = 1;
 		//***************MAKING THE 3 MOTORS MOVE TOGETHER*************** 
 		//starting with X as the beginning state and make it execute one step 
 		//decreases one from the step [X]
@@ -89,7 +95,7 @@ void motor_movement(double step[4],long speed,long exspeed)
 					  _delay_us(1);
 				  }
 			  } 
-			 index  =  (j[2]<<2) +(j[1]<<1) +(j[0]<<0);
+			 index  = ( j[3]<<3) + ( j[2]<<2) +(j[1]<<1) +(j[0]<<0);
 			 S = FSM[S].Next[index];
 		    }
     }

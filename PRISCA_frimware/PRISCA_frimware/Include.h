@@ -15,4 +15,5 @@
 #include "getTemperture.h"
 #include "eeprom.h"
 #include "motor.h"
+#include "Gpio.h"
 #endif /* INCLUDE_H_ */

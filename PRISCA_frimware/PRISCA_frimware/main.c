@@ -83,7 +83,7 @@ double F	= 0.00;		//variable to store speed of x y z motors
 double FN	= 0.00;		//variable to store new speed of x y z & extruder motors
 double Fe	= 0.00;		//variable to store speed of extruder
 double SB	= 0.00;		//variable to store the temperature of heat bed on it
-double B	= 0.00;		//variable to store the minimum temperature of extruder on it
+double Bt	= 0.00;		//variable to store the minimum temperature of extruder on it
 double I	= 0.00;		//variable to store the shift of x coordinates
 double J	= 0.00;		//variable to store the shift of y coordinates
 double R	= 0.00;		//variable to store the radius of circular motion
@@ -227,8 +227,8 @@ int main(void)
 					Transmit_Data("ok");
 					break;
 				case 109:
-					B = get_value(String,'B');
-					if (B == 0)
+					Bt = get_value(String,'B');
+					if (Bt == 0)
 					{
 						SE0 = get_value(String,'S');
 						status = 1;
@@ -303,6 +303,8 @@ int main(void)
 					{
 						Fextrud = 1;
 					}
+					Transmit_Data("ok");
+					break;
 				case 501:
 					EEPROM_ReadNBytes(XSTEP_PER_mm_address,X_pos,5);
 					EEPROM_ReadNBytes(YSTEP_PER_mm_address,Y_pos,5);
@@ -341,7 +343,7 @@ int main(void)
 			val = get_int (String,'G');
 			switch (val)
 			{
-				case 0:case 1:
+				case 1:
 					motor_init();
 					value_1 = get_value(String,'X');           //extract first value
 					value_2 = get_value(String,'Y'); //call function to extract second value
@@ -382,9 +384,10 @@ int main(void)
 						{
 							Transmit_Data("error extruder temp.");
 							Transmit_Char('\r');
-						}
-						Transmit_Data("ok");					
+							break;
+						}						
 					}
+					Transmit_Data("ok");
 					break;
 				case 2:case 3:
 					value_1 = get_value(String,'X');  //extract first value
@@ -459,11 +462,14 @@ int main(void)
 }
 void Init(void){
 	DDRD |= (1<<PD4)|(1<<PD5)|(1<<PD7);
+	pin_direction (D, 2, input );
 	DDRC = 0XFF;
 	DDRA |= (1<<PA4) | (1<<PA5) | (1<<PA6) | (1<<PA7);
 	DDRB |= (1<<PB0) | (1<<PB1);
 	ADCSRA = 0x87; //to active A/D pins
 	ADMUX |= (1<<REFS0);// external reference volt is selected
+	GICR |= 0x40;
+	MCUCR |= 0x11;
 	UART_INIT();
 	motor_init();
 	Pid_init(K_P * Scaling, K_I * Scaling, K_D * Scaling, &BpidData);
@@ -559,4 +565,12 @@ ISR(TIMER0_OVF_vect)
 			status = 0;
 		}
 	}
+}
+ISR (INT0_vect)
+{
+	pin_write (M_PORT, Z_DIR_PIN ,1 );
+	pin_write (M_PORT, Z ,0 );
+	_delay_us (300);
+	pin_write (M_PORT, Z ,1 );
+	_delay_us (300);
 }

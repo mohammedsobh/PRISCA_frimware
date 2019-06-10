@@ -20,7 +20,7 @@ double get_value (char* String,char ch)
 	{
 		v [i] = 0;
 	}
-	while(1)
+	while(i<80)
 	{
 		if (String [i] == ch){
 			v [j] = String[j+i+1];

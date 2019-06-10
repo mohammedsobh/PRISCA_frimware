@@ -33,7 +33,7 @@ char pin_Read(char base,char bin)
 
 void pin_write (char base, char bin ,bool p )
 {
-	if (!p)
+	if (p)
 	set_bin ( (base+2) , bin);
 	else
 	reset_bin ( (base+2) , bin);

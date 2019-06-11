@@ -38,15 +38,15 @@
 #define D1 eS_PORTA1
 #define D2 eS_PORTA2
 #define D3 eS_PORTA3
-#define D4 eS_PORTA4
-#define D5 eS_PORTA5
-#define D6 eS_PORTA6
-#define D7 eS_PORTA7
-#define RS eS_PORTB0
-#define EN eS_PORTB1
+#define D4 eS_PORTC0
+#define D5 eS_PORTC1
+#define D6 eS_PORTC2
+#define D7 eS_PORTC3
+#define RS eS_PORTC4
+#define EN eS_PORTC5
 #endif
 
-#include<util/delay.h>
+#include <util/delay.h>
 
 void pinChange(int a, int b)
 {

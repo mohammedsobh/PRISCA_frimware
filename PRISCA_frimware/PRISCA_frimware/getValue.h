@@ -14,5 +14,6 @@
 double get_value (char* String,char ch);
 int get_int (char* String,char ch);
 double sub_function (double *current_pos, double new_pos);
+void get_SEvalue (char* Str,char Sch,char Ech);
 bool find (char* String,char ch);
 #endif /* GETVALUE_H_ */

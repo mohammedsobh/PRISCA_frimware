@@ -2,7 +2,7 @@
  * PRISCA_frimware.c
  *
  * Created : 4/23/2019 6:42:43 PM
- * Author  : MOHAMMED SOBH
+ * Author  : MOHAMMED SOBH & NORHAN TAREK
  * Company : PRISCA
  */
 
@@ -13,7 +13,7 @@
 #include <stdbool.h> // library for boolean variable
 #include <avr/interrupt.h>
 #include <math.h>
-#include "Include.h" // all working library 
+#include "Include.h" // all working library
 #define K_P 2.00	//GAIN of P term
 #define K_I 0.05	//GAIN of I term
 #define K_D 0.05	//GAIN of D term
@@ -73,23 +73,28 @@ bool homeSet		= 0;
 bool extrud			= 0;
 bool Fextrud		= 0;
 bool ReadTemp		= 0;
+bool START			= 1;
 //variable to store number of step per mm on them
 /*************************************************************/
 double Xspm,Yspm,Zspm,Espm,
 FXspm = 100.00,FYspm = 100.00,FZspm = 100.00,FEspm = 140.00;
 /************************************************************/
-double SE0	= 0.00;		//variable to store the temperature of extruder on it
-double F	= 0.00;		//variable to store speed of x y z motors
-double FN	= 0.00;		//variable to store new speed of x y z & extruder motors
-double Fe	= 0.00;		//variable to store speed of extruder
-double SB	= 0.00;		//variable to store the temperature of heat bed on it
-double Bt	= 0.00;		//variable to store the minimum temperature of extruder on it
-double I	= 0.00;		//variable to store the shift of x coordinates
-double J	= 0.00;		//variable to store the shift of y coordinates
-double R	= 0.00;		//variable to store the radius of circular motion
-long wait	= 0;		//variable to store the time that the printer is sleep
-int val		= 0;		//variable to store the number of control gcode
-int SUBval	= 0;		//variable to store the number of control gcode for some codes
+double SE0			= 0.00;		//variable to store the temperature of extruder on it
+double F			= 0.00;		//variable to store speed of x y z motors
+double FN			= 0.00;		//variable to store new speed of x y z & extruder motors
+double Fe			= 0.00;		//variable to store speed of extruder
+double SB			= 0.00;		//variable to store the temperature of heat bed on it
+double Bt			= 0.00;		//variable to store the minimum temperature of extruder on it
+double I			= 0.00;		//variable to store the shift of x coordinates
+double J			= 0.00;		//variable to store the shift of y coordinates
+double R			= 0.00;		//variable to store the radius of circular motion
+long wait			= 0;		//variable to store the time that the printer is sleep
+int val				= 0;		//variable to store the number of control gcode
+int SUBval			= 0;		//variable to store the number of control gcode for some codes
+int NumberOfLine	= 0;		//variable to count number of line that printed
+int NumberOfPLine	= 0;		//variable to count number of line that printed
+int CheckSum		= 0;		//variable to count number of line that printed
+
 int main(void)
 {
     Init();
@@ -121,10 +126,12 @@ int main(void)
 		 		String [i] = 0;
 			}
 			Recive_Data(String); // receive uart data and store it in variable (string)
+			
 		}
 		// this code for run the Gcode depending on codes that in https://docs.google.com/document/d/1-IXL4SPSpeL7-teKqPJBG51-9jkx55wjBWgZDoANAug/edit?usp=sharing&fbclid=IwAR3pC85grjWT5KBqa4N7_nx4Ls8xZIw1vQixjXgDGBRfcvUnp72kgWrgpcQ
 		if (String[0] == 'M')
 		{
+			//Transmit_Data(String);
 			val = get_int (String,'M');
 			switch (val)
 			{
@@ -145,7 +152,6 @@ int main(void)
 					break;
 				case 18: case 84:
 					wait = (get_int(String ,'S')*1000);
-					status = 1;
 					XEN_DES = find(String ,'X');
 					YEN_DES = find(String ,'Y');
 					ZEN_DES = find(String ,'Z');
@@ -163,7 +169,6 @@ int main(void)
 						}
 						motor_init();
 					}
-					status = 0;
 					Transmit_Data("ok");
 					break;
 				case 82:
@@ -216,7 +221,53 @@ int main(void)
 					Transmit_Data("ok");
 					break;
 				case 105:
-					ReadTemp = 1;
+					if (START)
+					{
+						Transmit_Data("welcome we are PRISCA");
+						Transmit_Char('\r');
+						START = 0;
+					} 
+					else
+					{
+						for (int x = 0 ; x < 10 ; x ++)
+						{
+							TE[x] = 0;
+							TB[x] = 0;
+						}
+						sprintf(TE,dtostrf(getTemp(T2), 2,3,"%f"));
+						sprintf(TB,dtostrf(getTemp(T0), 2,3,"%f"));
+						if ((BED_Activ == 1))
+						{
+							char TEMP[20]={'T',':',
+								TE[0],TE[1],TE[2],TE[3],TE[4],
+								' ','E',':','0',' ',
+							'B',':',TB[0],TB[1],TB[2],TB[3],TB[4],'\r'};
+							if ((SE0 < getTemp(T0)) && (SB < getTemp(T2))) //enable extrude filament
+							{
+								extrud = 1;
+							}
+							else
+							{
+								extrud = 0;
+							}
+							Transmit_Data(TEMP);
+						}
+						else
+						{
+							char TEMP[12]={'T',':',
+								TE[0],TE[1],TE[2],TE[3],TE[4],
+							' ','E',':','0','\r'};
+							if ((SE0 < getTemp(T0)))
+							{
+								extrud = 1;
+							}
+							else
+							{
+								extrud = 0;
+							}
+							Transmit_Data(TEMP);
+						}
+					}
 					break;
 				case 106:
 					OCR2 = get_value(String,'S');
@@ -231,17 +282,17 @@ int main(void)
 					if (Bt == 0)
 					{
 						SE0 = get_value(String,'S');
-						status = 1;
 						while(getTemp(T0) < SE0);
-						status = 0;
 					} 
 					else
 					{
-						status = 1;
 						while(getTemp(T0) < B);
-						status = 0;
 					}
 					
+					Transmit_Data("ok");
+					break;
+				case 110:
+					NumberOfPLine = 0;
 					Transmit_Data("ok");
 					break;
 				case 112:
@@ -258,7 +309,6 @@ int main(void)
 					SB = 0;
 					status = 1;
 					motor_movement(STEP,F,Fe);
-					status = 0;
 					Transmit_Data("ok");
 					break;
 				case 114:
@@ -285,9 +335,7 @@ int main(void)
 					break;
 				case 190:
 					SB = get_value(String,'S');
-					status = 1;
 					while(getTemp(T2) < SB);
-					status = 0;
 					Transmit_Data("ok");
 					break;
 				case 206:
@@ -336,14 +384,15 @@ int main(void)
 					' ','E',E_pos[0],E_pos[1],E_pos[2],E_pos[3],E_pos[4],'s','/','m','m','\r'};
 					Transmit_Data(acc);
 					break; 				
-			}	
+			}
+			status = 0;	
 		}
 		else if (String[0] == 'G')
 		{
 			val = get_int (String,'G');
 			switch (val)
 			{
-				case 1:
+				case 0:case 1:
 					motor_init();
 					value_1 = get_value(String,'X');           //extract first value
 					value_2 = get_value(String,'Y'); //call function to extract second value
@@ -368,17 +417,16 @@ int main(void)
 					if (!(value_1>200||value_2>200||value_3>500)) // if the values don't skip the plate ,use it
 
 					{
+						status = 1;
 						STEP[0] = sub_function (&old_val_1, value_1)*Xspm;     //call function to extract first step
 						STEP[1] = sub_function (&old_val_2, value_2)*Yspm;    //call function to extract second step
 						STEP[2] = sub_function (&old_val_3, value_3)*Zspm;    //call function to extract third step
 						value_1 = 0;
 						value_2 = 0;
 						value_3 = 0;
-						status = 1;
 						if ((extrud || Fextrud))
 						{
 							motor_movement(STEP,F,Fe);
-							status = 0;
 						} 
 						else
 						{
@@ -404,7 +452,6 @@ int main(void)
 					{
 						R = sqrt(pow(I,2)+pow(J,2));
 					} 
-					status = 1;
 					for (int th = 0 ; th <= 360 ; th++)
 					{
 						double xc = R*cos(th)*cos(th);
@@ -441,10 +488,10 @@ int main(void)
 							}
 							STEP[2] = 0;
 							STEP[3] = Espm;
+							status = 1;
 							motor_movement(STEP,F,Fe);
 						} 
 					}
-					status = 0;
 					break;
 				case 28:
 					if (!homeSet)
@@ -457,6 +504,16 @@ int main(void)
 					Transmit_Data("ok");
 					break;
 			}
+			status = 0;
+		}
+		else if (String[0] == 'N')
+		{
+			status = 1;
+			NumberOfPLine ++ ;
+			NumberOfLine = get_int(String,'N');
+			CheckSum = get_int(String,'*');
+			get_SEvalue(String,' ','*');
+			Transmit_Data(String);
 		}
 	}
 }
@@ -500,47 +557,6 @@ ISR(TIMER0_OVF_vect)
  		OCR1A =	pid_Controller(SE0	,getTemp(T2), &SpidData); //out the pid value to control the temperature of extruder
   		OCR1B = pid_Controller(SB	,getTemp(T0), &BpidData); //out the pid value to control the temperature of heat bed
 		gFlags.pidTimer = 0;
-		for (int x = 0 ; x < 10 ; x ++)
-		{
-			TE[x] = 0;
-			TB[x] = 0;
-		}
-		if (ReadTemp) //send the temperature to uart
-		{
-			sprintf(TE,dtostrf(getTemp(T2), 2,3,"%f"));
-			sprintf(TB,dtostrf(getTemp(T0), 2,3,"%f"));
-			if ((BED_Activ == 1))
-			{
-				char TEMP[20]={'T',':',
-					TE[0],TE[1],TE[2],TE[3],TE[4],
-					' ','E',':','0',' ',
-				'B',':',TB[0],TB[1],TB[2],TB[3],TB[4],'\r'};
-				if ((SE0 < getTemp(T0)) && (SB < getTemp(T2))) //enable extrude filament
-				{
-					extrud = 1;
-				}
-				else
-				{
-					extrud = 0;
-				}
-				Transmit_Data(TEMP);
-			}
-			else
-			{
-				char TEMP[12]={'T',':',
-					TE[0],TE[1],TE[2],TE[3],TE[4],
-				' ','E',':','0','\r'};
-				if ((SE0 < getTemp(T0)))
-				{
-					extrud = 1;
-				}
-				else
-				{
-					extrud = 0;
-				}
-				Transmit_Data(TEMP);
-			}
-		}
 		
 	}
 	if (status == 1 && (UCSRA & (1 << RXC))) //if the printer busy send ack.

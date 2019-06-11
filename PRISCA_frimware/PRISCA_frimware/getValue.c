@@ -20,7 +20,7 @@ double get_value (char* String,char ch)
 	{
 		v [i] = 0;
 	}
-	while(i<80)
+	while(i < sizeof(String)/sizeof(char))
 	{
 		if (String [i] == ch){
 			v [j] = String[j+i+1];
@@ -33,6 +33,35 @@ double get_value (char* String,char ch)
 	}
 	return (atof(v));
 }
+void get_SEvalue (char* Str,char Sch,char Ech)
+{
+	int S = 0,j=0,lens = sizeof(Str)/sizeof(Str[0]);
+	char RXStr[lens];
+	while(1)
+	{
+		if (Str [S] == Sch){
+			while(1)
+			{
+				RXStr [j] = Str[j+S+1];
+				Str[j] = RXStr[j];
+				if ((Str [j+S+2] == Ech))
+					{
+						for (int i = j+1 ; i < lens ; i++)
+						{
+							Str[i] = 0;
+						}
+						break;
+					}
+				else
+					j++;
+			}
+			break;
+		}
+		else
+			S++;
+	}
+
+}
 int get_int (char* String,char ch)
 {
 	int i = 0,j=0;
@@ -41,7 +70,7 @@ int get_int (char* String,char ch)
 	{
 		v [i] = 0;
 	}
-	while(1)
+	while(i < sizeof(String))
 	{
 		if (String [i] == ch){
 			v [j] = String[j+i+1];
@@ -58,7 +87,7 @@ bool find (char* String,char ch)
 {
 	int i = 0;
 	bool f  = 0;
-	while(1)
+	while(i < sizeof(String))
 	{
 		if (String [i] == ch){
 			f = 1;

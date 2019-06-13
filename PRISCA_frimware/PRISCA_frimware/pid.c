@@ -49,12 +49,12 @@ void Pid_init(double P, double I, double D, struct pid_data *pid)
  */
 int16_t pid_Controller(double setPoint, double processValue, struct pid_data *pid_st)
 {
-	double error = setPoint - processValue;
-	double P_value = error * (pid_st ->pid_D);									// Calculate Pterm and limit error overflow
-	pid_st ->SumError = pid_st ->SumError + error ;
-	double I_value = pid_st ->SumError * pid_st->pid_I;							// Calculate Iterm and limit integral runaway
+	double P_value = 0.00,I_value = 0.00;
+	double error = setPoint - processValue;										
+	pid_st ->SumError = pid_st ->SumError + error ;							
 	long double D_value = (pid_st ->pid_D)*((error - (pid_st ->last_error)));	// Calculate Dterm
-	if (error > (pid_st ->MaxError))
+	// Calculate Pterm and limit error overflow
+	if (error > (pid_st ->MaxError)) 
 	{
 		P_value = INT16_MAX;
 	}
@@ -62,6 +62,9 @@ int16_t pid_Controller(double setPoint, double processValue, struct pid_data *pi
 	{
 		P_value = -INT16_MAX;
 	}
+	else
+		P_value = error * (pid_st ->pid_D);
+	// Calculate Iterm and limit integral runaway
 	if (pid_st ->SumError > (pid_st ->MaxSumError))
 	{
 		pid_st ->SumError = pid_st ->MaxSumError;
@@ -72,6 +75,8 @@ int16_t pid_Controller(double setPoint, double processValue, struct pid_data *pi
 		pid_st ->SumError = -pid_st ->MaxSumError;
 		I_value = -INT32_MAX/2;
 	}
+	else
+		I_value = pid_st ->SumError * pid_st->pid_I;	
 	int16_t PID_value = (P_value + I_value + D_value)/Scaling ;
 	if(PID_value < 0)
 	{    PID_value = 0;    }

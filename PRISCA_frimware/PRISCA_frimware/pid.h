@@ -10,7 +10,7 @@
 #define PID_H
 
 #include "stdint.h"
-#define  Time_Interval 157
+#define  Time_Interval 150
 #define Scaling 124
 /*! \brief PID Status
  *

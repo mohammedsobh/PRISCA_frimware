@@ -46,6 +46,7 @@ struct GLOBAL_FLAGS {
 	} gFlags = {0, 0};
 int Vo;
 char String[80] ;									// variable to storage the received uart in it
+char String2[80] ;									// variable to storage the received uart in it
 char X_pos[10],Y_pos[10],Z_pos[10],E_pos[10];		//variables to storage the position of each coordinates in them to send them using uart 
 char TE[10],TB[10];									//variables to storage the temperature of heat bed & extruder in them to send them using uart
 double STEP[4];										//variable to storage number of steps that each motor should rotat {x,y,z,extruder}
@@ -84,7 +85,6 @@ double F			= 0.00;		//variable to store speed of x y z motors
 double FN			= 0.00;		//variable to store new speed of x y z & extruder motors
 double Fe			= 0.00;		//variable to store speed of extruder
 double SB			= 0.00;		//variable to store the temperature of heat bed on it
-double Bt			= 0.00;		//variable to store the minimum temperature of extruder on it
 double I			= 0.00;		//variable to store the shift of x coordinates
 double J			= 0.00;		//variable to store the shift of y coordinates
 double R			= 0.00;		//variable to store the radius of circular motion
@@ -94,18 +94,17 @@ int SUBval			= 0;		//variable to store the number of control gcode for some code
 int NumberOfLine	= 0;		//variable to count number of line that printed
 int NumberOfPLine	= 0;		//variable to count number of line that printed
 int CheckSum		= 0;		//variable to count number of line that printed
-
+/*static variables that initialize only once */
+static double old_val_1 = 0;
+static double old_val_2 = 0;
+static double old_val_3 = 0;
+//three variables that contain numbers that convert from string/
+double value_1;
+double value_2;
+double value_3;
 int main(void)
 {
     Init();
-	/*static variables that initialize only once */
-	static double old_val_1 = 0;
-	static double old_val_2 = 0;
-	static double old_val_3 = 0;
-	//three variables that contain numbers that convert from string/
-	double value_1;
-	double value_2;
-	double value_3;
 	//to get the s/mm that stored in eeprom
 	/*****************************************************/
 	EEPROM_ReadNBytes(XSTEP_PER_mm_address,X_pos,5);
@@ -126,13 +125,13 @@ int main(void)
 		 		String [i] = 0;
 			}
 			Recive_Data(String); // receive uart data and store it in variable (string)
-			
 		}
 		// this code for run the Gcode depending on codes that in https://docs.google.com/document/d/1-IXL4SPSpeL7-teKqPJBG51-9jkx55wjBWgZDoANAug/edit?usp=sharing&fbclid=IwAR3pC85grjWT5KBqa4N7_nx4Ls8xZIw1vQixjXgDGBRfcvUnp72kgWrgpcQ
 		if (String[0] == 'M')
 		{
 			//Transmit_Data(String);
 			val = get_int (String,'M');
+			sei();
 			switch (val)
 			{
 				case 0: case 1:
@@ -145,11 +144,11 @@ int main(void)
 					SE0 = 0.0;
 					SB = 0.0;
 					Transmit_Data("ok");
-					break;
+				break;
 				case 17:
 					motor_init();
 					Transmit_Data("ok");
-					break;
+				break;
 				case 18: case 84:
 					wait = (get_int(String ,'S')*1000);
 					XEN_DES = find(String ,'X');
@@ -170,20 +169,17 @@ int main(void)
 						motor_init();
 					}
 					Transmit_Data("ok");
-					break;
-				case 82:
-					STEP[3] = 0;
-					Transmit_Data("ok");
-					break;
-				case 83:
+				break;
+				case 82:case 83:
 					old_val_1 = 0;
 					old_val_2 = 0;
 					old_val_3 = 0;
 					STEP[0] = 0;
 					STEP[1] = 0;
 					STEP[2] = 0;
+					STEP[3] = 0;
 					Transmit_Data("ok");
-					break;
+				break;
 				case 92:case 500:case 502:
 					for (int i = 0 ; i < 10 ; i ++)
 					{
@@ -215,136 +211,69 @@ int main(void)
 					EEPROM_WriteNBytes(ZSTEP_PER_mm_address,Z_pos,5); //write 2-bytes of data(Zspm) at 0x04.
 					EEPROM_WriteNBytes(ESTEP_PER_mm_address,E_pos,5); //write 2-bytes of data(E0spm) at 0x06.
 					Transmit_Data("ok");
-					break;
+				break;
 				case 104:
 					SE0 = get_value(String,'S');
 					Transmit_Data("ok");
-					break;
-				case 105:
-					if (START)
-					{
-						Transmit_Data("welcome we are PRISCA");
-						Transmit_Char('\r');
-						START = 0;
-					} 
-					else
-					{
-						for (int x = 0 ; x < 10 ; x ++)
-						{
-							TE[x] = 0;
-							TB[x] = 0;
-						}
-						sprintf(TE,dtostrf(getTemp(T2), 2,3,"%f"));
-						sprintf(TB,dtostrf(getTemp(T0), 2,3,"%f"));
-						if ((BED_Activ == 1))
-						{
-							char TEMP[20]={'T',':',
-								TE[0],TE[1],TE[2],TE[3],TE[4],
-								' ','E',':','0',' ',
-							'B',':',TB[0],TB[1],TB[2],TB[3],TB[4],'\r'};
-							if ((SE0 < getTemp(T0)) && (SB < getTemp(T2))) //enable extrude filament
-							{
-								extrud = 1;
-							}
-							else
-							{
-								extrud = 0;
-							}
-							Transmit_Data(TEMP);
-						}
-						else
-						{
-							char TEMP[12]={'T',':',
-								TE[0],TE[1],TE[2],TE[3],TE[4],
-							' ','E',':','0','\r'};
-							if ((SE0 < getTemp(T0)))
-							{
-								extrud = 1;
-							}
-							else
-							{
-								extrud = 0;
-							}
-							Transmit_Data(TEMP);
-						}
-					}
-					break;
+				break;
 				case 106:
 					OCR2 = get_value(String,'S');
 					Transmit_Data("ok");
-					break;
+				break;
 				case 107:
 					OCR2 = 0;
 					Transmit_Data("ok");
-					break;
+				break;
 				case 109:
-					Bt = get_value(String,'B');
-					if (Bt == 0)
-					{
-						SE0 = get_value(String,'S');
-						while(getTemp(T0) < SE0);
-					} 
-					else
-					{
-						while(getTemp(T0) < B);
-					}
-					
+					SE0 = get_value(String,'S');
+					while(getTemp(T0) < SE0);
 					Transmit_Data("ok");
-					break;
+				break;
 				case 110:
 					NumberOfPLine = 0;
 					Transmit_Data("ok");
-					break;
-				case 112:
-					value_1 = 0;  //extract first value
-					value_2 = 0; //call function to extract second value
-					value_3 = 0; //call function to extract third value
-					STEP[0] = sub_function (&old_val_1, value_1)*Xspm;     //call function to extract first step
-					STEP[1] = sub_function (&old_val_2, value_2)*Yspm;    //call function to extract second step
-					STEP[2] = sub_function (&old_val_3, value_3)*Zspm;    //call function to extract third step
-					STEP[3] = 0;
-					F = 0;
-					Fe = 0;
-					SE0 = 0;
-					SB = 0;
-					status = 1;
-					motor_movement(STEP,F,Fe);
-					Transmit_Data("ok");
-					break;
-				case 114:
-					for (int i = 0 ; i < 10 ; i ++)
-					{
-						X_pos[i] = 0;
-						Y_pos[i] = 0;
-						Z_pos[i] = 0;
-					}
-					sprintf(X_pos,dtostrf(old_val_1, 2,3,"%f"));
-					sprintf(Y_pos,dtostrf(old_val_2, 2,3,"%f"));
-					sprintf(Z_pos,dtostrf(old_val_3, 2,3,"%f"));
-					char pos[21]={'X',
-						X_pos[0],X_pos[1],X_pos[2],X_pos[3],X_pos[4],
-						' ','Y',
-						Y_pos[0],Y_pos[1],Y_pos[2],Y_pos[3],Y_pos[4],
-						' ','Z',Z_pos[0],Z_pos[1],Z_pos[2],Z_pos[3],Z_pos[4],'\r'};
-					Transmit_Data(pos);
-					break;
+				break;					
+// 				case 114:
+// 					for (int i = 0 ; i < 10 ; i ++)
+// 					{
+// 						X_pos[i] = 0;
+// 						Y_pos[i] = 0;
+// 						Z_pos[i] = 0;
+// 					}
+// 					sprintf(X_pos,dtostrf(old_val_1, 2,3,"%f"));
+// 					sprintf(Y_pos,dtostrf(old_val_2, 2,3,"%f"));
+// 					sprintf(Z_pos,dtostrf(old_val_3, 2,3,"%f"));
+// 					char pos[21]={'X',
+// 						X_pos[0],X_pos[1],X_pos[2],X_pos[3],X_pos[4],
+// 						' ','Y',
+// 						Y_pos[0],Y_pos[1],Y_pos[2],Y_pos[3],Y_pos[4],
+// 						' ','Z',Z_pos[0],Z_pos[1],Z_pos[2],Z_pos[3],Z_pos[4],'\r'};
+// 					Transmit_Data(pos);
+// 				break;
 				case 140:
 					SB = get_value(String,'S');
-					BED_Activ = 1;
+					if (SB == 0)
+					{
+						BED_Activ = 0;
+					} 
+					else
+					{
+						BED_Activ = 1;
+					}
 					Transmit_Data("ok");
-					break;
+				break;
 				case 190:
 					SB = get_value(String,'S');
 					while(getTemp(T2) < SB);
 					Transmit_Data("ok");
-					break;
+				break;
 				case 206:
 					old_val_1 = 0;
 					old_val_2 = 0;
 					old_val_3 = 0;
 					homeSet = 1;
 					Transmit_Data("ok");
-					break;
+				break;
 				case 302:
 					SE0 = get_value(String,'S');
 					if (SE0 <= 25 )
@@ -352,7 +281,7 @@ int main(void)
 						Fextrud = 1;
 					}
 					Transmit_Data("ok");
-					break;
+				break;
 				case 501:
 					EEPROM_ReadNBytes(XSTEP_PER_mm_address,X_pos,5);
 					EEPROM_ReadNBytes(YSTEP_PER_mm_address,Y_pos,5);
@@ -363,7 +292,7 @@ int main(void)
 					Zspm = atof(Z_pos);
 					Espm = atof(E_pos);
 					Transmit_Data("ok");
-					break;
+				break;
 				case 503:
 					for (int i = 0 ; i < 10 ; i ++)
 					{
@@ -383,13 +312,20 @@ int main(void)
 					's','/','m','m',' ','Z',Z_pos[0],Z_pos[1],Z_pos[2],Z_pos[3],Z_pos[4],'s','/','m','m',
 					' ','E',E_pos[0],E_pos[1],E_pos[2],E_pos[3],E_pos[4],'s','/','m','m','\r'};
 					Transmit_Data(acc);
-					break; 				
+				break;
+				default:
+					for(int i = 0;i < 80; i++)
+						String2[i] = String[i];
+					 status = 1;
+					 sei();
+				break;				
 			}
 			status = 0;	
 		}
 		else if (String[0] == 'G')
 		{
 			val = get_int (String,'G');
+			sei();
 			switch (val)
 			{
 				case 0:case 1:
@@ -397,8 +333,8 @@ int main(void)
 					value_1 = get_value(String,'X');           //extract first value
 					value_2 = get_value(String,'Y'); //call function to extract second value
 					value_3 = get_value(String,'Z'); //call function to extract third value
-					STEP[3] = get_value(String,'E');
-					if ((STEP[3] && value_1 && value_2 && value_3) == 0)
+					STEP[3] = get_value(String,'E')*Espm;
+					if ((value_1 && value_2 && value_3) == 0)
 					{
 						FN = get_value(String,'F');
 						if (FN != 0)
@@ -418,6 +354,7 @@ int main(void)
 
 					{
 						status = 1;
+						sei();
 						STEP[0] = sub_function (&old_val_1, value_1)*Xspm;     //call function to extract first step
 						STEP[1] = sub_function (&old_val_2, value_2)*Yspm;    //call function to extract second step
 						STEP[2] = sub_function (&old_val_3, value_3)*Zspm;    //call function to extract third step
@@ -436,7 +373,7 @@ int main(void)
 						}						
 					}
 					Transmit_Data("ok");
-					break;
+				break;
 				case 2:case 3:
 					value_1 = get_value(String,'X');  //extract first value
 					value_2 = get_value(String,'Y'); //call function to extract second value
@@ -489,31 +426,45 @@ int main(void)
 							STEP[2] = 0;
 							STEP[3] = Espm;
 							status = 1;
+							sei();
 							motor_movement(STEP,F,Fe);
 						} 
 					}
-					break;
+					Transmit_Data("ok");
+				break;
 				case 28:
-					if (!homeSet)
-					{
-						STEP[0] = find(String,'X');
-						STEP[1] = find(String,'Y');
-						STEP[2] = find(String,'Z');
-						//make auto home
-					} 
+// 					if (!homeSet)
+// 					{
+// 						STEP[0] = find(String,'X');
+// 						STEP[1] = find(String,'Y');
+// 						STEP[2] = find(String,'Z');
+// 						//make auto home
+// 					} 
 					Transmit_Data("ok");
 					break;
+				case 92:
+					value_1 = get_value(String,'X');           //extract first value
+					value_2 = get_value(String,'Y'); //call function to extract second value
+					value_3 = get_value(String,'Z'); //call function to extract third value
+					STEP[3] = get_value(String,'E');
+					//set the middle of the bed to 0,0
+					Transmit_Data("ok");
+				break;
 			}
 			status = 0;
+			STEP[0] = 0;
+			STEP[1] = 0;
+			STEP[2] = 0;
+			STEP[3] = 0;
 		}
 		else if (String[0] == 'N')
 		{
+			cli();
 			status = 1;
 			NumberOfPLine ++ ;
 			NumberOfLine = get_int(String,'N');
 			CheckSum = get_int(String,'*');
 			get_SEvalue(String,' ','*');
-			Transmit_Data(String);
 		}
 	}
 }
@@ -540,7 +491,8 @@ void Init(void){
 	TCCR0 |= (1 << CS00) | (1<< FOC0); // clock source to be used by the Timer/Counter clkI/O
 	TIMSK |= (1 << TOIE0);
 	TCNT0  = 0;
-	sei();
+	sei();
+
 }
 ISR(TIMER0_OVF_vect)
 {
@@ -554,32 +506,83 @@ ISR(TIMER0_OVF_vect)
 	}
 	if (gFlags.pidTimer == 1 ) 
 	{
- 		OCR1A =	pid_Controller(SE0	,getTemp(T2), &SpidData); //out the pid value to control the temperature of extruder
-  		OCR1B = pid_Controller(SB	,getTemp(T0), &BpidData); //out the pid value to control the temperature of heat bed
+ 		OCR1A =	255 - pid_Controller(SE0	,getTemp(T0), &SpidData); //out the pid value to control the temperature of extruder
+  		OCR1B = 255 - pid_Controller(SB	,getTemp(T2), &BpidData); //out the pid value to control the temperature of heat bed
 		gFlags.pidTimer = 0;
 		
 	}
-	if (status == 1 && (UCSRA & (1 << RXC))) //if the printer busy send ack.
-	{
-		for (int i = 0 ; i < 80 ;i++)
-		{
-			String [i] = 0;
-		}
-		Recive_Data(String);
-		Transmit_Data("the printer is busy");
-	}
-	if (String[0] == 'M' && status == 1)
+	
+	if (String2[0] == 'M' )
 	{
 		SUBval = get_int(String,'M');
 		if (SUBval == 112)
 		{
+			value_1 = 0;  //extract first value
+			value_2 = 0; //call function to extract second value
+			value_3 = 0; //call function to extract third value
+			STEP[0] = sub_function (&old_val_1, value_1)*Xspm;     //call function to extract first step
+			STEP[1] = sub_function (&old_val_2, value_2)*Yspm;    //call function to extract second step
+			STEP[2] = sub_function (&old_val_3, value_3)*Zspm;    //call function to extract third step
+			STEP[3] = 0;
+			F = 0;
+			Fe = 0;
+			SE0 = 0;
+			SB = 0;
+			status = 1;
+			motor_movement(STEP,F,Fe);
 			STEP[0] = 0;
 			STEP[1] = 0;
 			STEP[2] = 0;
 			STEP[3] = 0;
-			motor_movement(STEP,F,Fe);
 			status = 0;
+			Transmit_Data("ok");
 		}
+		if (SUBval == 105)
+		{
+			if (START)
+			{
+				Transmit_Data("welcome we are PRISCA");
+				Transmit_Char('\r');
+				START = 0;
+			}
+			else
+			{
+
+				for (int x = 0 ; x < 10 ; x ++)
+				{
+					TE[x] = 0;
+					TB[x] = 0;
+				}
+				sprintf(TE,dtostrf(getTemp(T0), 2,3,"%f"));
+				sprintf(TB,dtostrf(getTemp(T2), 2,3,"%f"));
+				if ((BED_Activ == 1))
+				{
+					char TEMP[20]={'T',':',
+						TE[0],TE[1],TE[2],TE[3],TE[4],
+						' ','E',':','0',' ',
+					'B',':',TB[0],TB[1],TB[2],TB[3],TB[4],'\r'};
+					Transmit_Data(TEMP);
+				}
+				else
+				{
+					char TEMP[12]={'T',':',
+						TE[0],TE[1],TE[2],TE[3],TE[4],
+					' ','E',':','0','\r'};
+					Transmit_Data(TEMP);
+				}
+			}
+			Transmit_Char('\n');
+			Transmit_Data("ok");
+		}
+		for (int i = 0;i<80;i++)
+		{
+			String2[i] = 0;
+		}
+	}
+	if (status == 1 && (UCSRA & (1 << RXC))) //if the printer busy send ack.
+	{
+		Recive_Data(String2);
+// 		Transmit_Data("wait");
 	}
 }
 ISR (INT0_vect)

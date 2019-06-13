@@ -15,16 +15,16 @@
 double get_value (char* String,char ch)
 {
 	int i = 0,j=0;
-	char v[10];
+	char v[20];
 	for (int i = 0 ; i < 10 ;i++)
 	{
 		v [i] = 0;
 	}
-	while(i < sizeof(String)/sizeof(char))
+	while(i < strlen(String))
 	{
 		if (String [i] == ch){
 			v [j] = String[j+i+1];
-			if ((String [j+i+2] == ' ') || (String [j+i+2] == '\r'))
+			if ((String [j+i+2] == ' ') || (String [j+i+2] == '\r')|| (String [j+i+2] == '\n'))
 			break;
 			j++;
 		}
@@ -35,20 +35,23 @@ double get_value (char* String,char ch)
 }
 void get_SEvalue (char* Str,char Sch,char Ech)
 {
-	int S = 0,j=0,lens = sizeof(Str)/sizeof(Str[0]);
+	int S = 0,j=0,lens = strlen(Str);
 	char RXStr[lens];
 	while(1)
 	{
 		if (Str [S] == Sch){
 			while(1)
 			{
-				RXStr [j] = Str[j+S+1];
-				Str[j] = RXStr[j];
+				RXStr[j] = Str[j+S+1];
+ 				Str[j] = RXStr[j];
 				if ((Str [j+S+2] == Ech))
 					{
-						for (int i = j+1 ; i < lens ; i++)
+						Str[j+1] = ' ';
+						int i = j+2;
+						while(i < lens-1)
 						{
 							Str[i] = 0;
+							i++;
 						}
 						break;
 					}
@@ -70,11 +73,11 @@ int get_int (char* String,char ch)
 	{
 		v [i] = 0;
 	}
-	while(i < sizeof(String))
+	while(i < strlen(String))
 	{
 		if (String [i] == ch){
 			v [j] = String[j+i+1];
-			if ((String [j+i+2] == ' ') || (String [j+i+2] == '\r'))
+			if ((String [j+i+2] == ' ') || (String [j+i+2] == '\r') || (String [j+i+2] == '\n'))
 			break;
 			j++;
 		}
@@ -87,7 +90,7 @@ bool find (char* String,char ch)
 {
 	int i = 0;
 	bool f  = 0;
-	while(i < sizeof(String))
+	while(i < strlen(String))
 	{
 		if (String [i] == ch){
 			f = 1;

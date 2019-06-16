@@ -96,7 +96,7 @@ bool find (char* String,char ch)
 			f = 1;
 			break;
 		}
-		else if (String [i] == '\r')
+		else if ((String [i] == '\r')|| (String [i] == '\n'))
 			break;
 		else
 			i++;

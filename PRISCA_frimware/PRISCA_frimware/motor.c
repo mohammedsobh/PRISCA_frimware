@@ -29,10 +29,18 @@ void motor_init ()
 	motor_EN_DES('Z',0);
 	motor_EN_DES('E',0);
 }
-void motor_movement(double step[4],long speed,long exspeed)
+void motor_movement(double step[4],double speed,double exspeed)
 {
-	long stepDuration = (1/speed)*60*pow(10,6);
-	long exstepDuration = (1/exspeed)*60*pow(10,6);
+	long stepDuration = 1;
+	long exstepDuration = 1;
+	if (speed != 0.0)
+	{
+		stepDuration = (1/speed)*60*pow(10,6);
+	}
+	if (exspeed !=0.0)
+	{
+		exstepDuration = (1/exspeed)*60*pow(10,6);
+	}
 	int DIR_pin[4] = {X_DIR_PIN,Y_DIR_PIN,Z_DIR_PIN,E_DIR_PIN};
 	for (int i = 0; i < 4 ; i++)
 	{
@@ -82,7 +90,7 @@ void motor_movement(double step[4],long speed,long exspeed)
 			  j[S] = 0;
 			  if (S == 3 )
 			  {
-				  for (int i = exstepDuration ; i>0 ; i-- )
+				  for (int i = exstepDuration ; i>=0 ; i-- )
 				  {
 					  _delay_us(1);
 				  }
@@ -90,7 +98,7 @@ void motor_movement(double step[4],long speed,long exspeed)
 			  } 
 			  else
 			  {
-				  for (int i = stepDuration ; i>0 ; i-- )
+				  for (int i = stepDuration ; i>=0 ; i-- )
 				  {
 					  _delay_us(1);
 				  }

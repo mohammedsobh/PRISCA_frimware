@@ -11,7 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-int k;
+int k ;
 long Crystal ();
 void UART_INIT();
 void Transmit_Char(char ptr_char);

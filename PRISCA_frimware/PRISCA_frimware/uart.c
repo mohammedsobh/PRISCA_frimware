@@ -11,8 +11,8 @@
 long Crystal ()
 {
 
-	uint32_t BAUD = 250000;
-	uint32_t MyBaud =  ((F_CPU / (16 * BAUD))-1);
+	uint32_t BAUD = 19200;
+	uint32_t MyBaud =  ((F_CPU / (8 * BAUD))-1);
 	return MyBaud;
 }
 
@@ -24,9 +24,9 @@ void UART_INIT()
 	t =Crystal();
 	UBRRL =  (uint8_t) ((t)& 0xFFu);
 	UBRRH = (uint8_t)((t>>8)& 0xFFu);
-	
-	UCSRB = ((1<<4) | (1<<3));     //Enable transmitter and Receiver
-	UCSRC = ((1 << URSEL) |(1<<2) | (1<<1));     //Character size is 8_bits
+	UCSRA |= (1<<U2X);
+	UCSRB |= ((1<<4) | (1<<3));     //Enable transmitter and Receiver
+	UCSRC |= ((1 << URSEL) |(1<<2) | (1<<1));     //Character size is 8_bits
 	
 }
 

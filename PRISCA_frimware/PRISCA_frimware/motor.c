@@ -29,18 +29,33 @@ void motor_init ()
 	motor_EN_DES('Z',0);
 	motor_EN_DES('E',0);
 }
-void motor_movement(double step[4],double speed,double exspeed)
+void motor_movement(double step[4],double spmm[4],double speed,double exspeed)
 {
-	long stepDuration = 1;
-	long exstepDuration = 1;
+	long stepDuration[4];
 	if (speed != 0.0)
 	{
-		stepDuration = (1/speed)*60*pow(10,6);
+		for (int i = 0; i < 3 ; i++)
+		{
+			stepDuration[i] = (1/(speed*spmm[i]))*60*pow(10,6);
+			if (stepDuration[i] < 100)
+				stepDuration[i] = 100;
+		}
 	}
+	else
+	{
+		for (int i = 0; i < 3 ; i++)
+		{
+			stepDuration[i] = 100;
+		}
+	}	
 	if (exspeed !=0.0)
 	{
-		exstepDuration = (1/exspeed)*60*pow(10,6);
+		stepDuration[3] = (1/(exspeed*spmm[3]))*60*pow(10,6);
+		if (stepDuration[3] < 100)
+			stepDuration[3] = 100;
 	}
+	else
+		stepDuration[3] = 100;
 	int DIR_pin[4] = {X_DIR_PIN,Y_DIR_PIN,Z_DIR_PIN,E_DIR_PIN};
 	for (int i = 0; i < 4 ; i++)
 	{
@@ -65,9 +80,9 @@ void motor_movement(double step[4],double speed,double exspeed)
 	/*{Current state,{next state}} */
 	STyp FSM[4]=
 	{
-		{X,{E,X,Y,Y,Z,X,Y,Y,E,X,Y,Y,Z,X,Y,Y}},
-		{Y,{E,X,Y,X,Z,X,Y,X,E,X,Y,X,Z,X,Y,X}},
-		{Z,{E,X,Y,X,Z,X,Y,X,E,X,Y,X,Z,X,Y,X}},
+		{X,{E,X,Y,Y,Z,X,Y,Y,E,E,E,Y,E,E,Y,Y}},
+		{Y,{E,X,Y,X,Z,X,Y,X,E,E,E,E,E,E,E,E}},
+		{Z,{E,X,Y,X,Z,X,Y,X,E,X,Y,X,E,X,Y,X}},
 		{E,{E,X,Y,X,Z,X,Y,X,E,X,Y,X,Z,X,Y,X}}
 	};	 
 		index = 1;
@@ -88,21 +103,10 @@ void motor_movement(double step[4],double speed,double exspeed)
 			 step[S] = step[S] - 1;
 			 if (step [S] <= 0)
 			  j[S] = 0;
-			  if (S == 3 )
-			  {
-				  for (int i = exstepDuration ; i>=0 ; i-- )
-				  {
-					  _delay_us(1);
-				  }
-				  
-			  } 
-			  else
-			  {
-				  for (int i = stepDuration ; i>=0 ; i-- )
-				  {
-					  _delay_us(1);
-				  }
-			  } 
+			for (int i = stepDuration[S] ; i>=0 ; i-- )
+			{
+				 _delay_us(1);
+			}
 			 index  = ( j[3]<<3) + ( j[2]<<2) +(j[1]<<1) +(j[0]<<0);
 			 S = FSM[S].Next[index];
 		    }

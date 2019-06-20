@@ -27,7 +27,7 @@
 #define EN_DES_ZPIN 6
 #define EN_DES_EPIN 7
 void motor_init ();
-void motor_movement(double step[4],double speed,double exspeed);
+void motor_movement( double step[4],double spmm[4],double speed,double exspeed);
 void motor_EN_DES(char motor,bool stu);
 
 #endif /* MOTOR_H_ */
